@@ -14,6 +14,6 @@ and:
 
 ```gradle
 dependencies {
-    compile 'com.github.jitpack:android-example:{latest version}'
+    compile 'com.github.GavinLi369:SlidingLayoutLibrary:v1.0.0'
 }
 ```
