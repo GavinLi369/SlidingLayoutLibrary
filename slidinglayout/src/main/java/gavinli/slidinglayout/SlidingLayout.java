@@ -32,13 +32,17 @@ public class SlidingLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        measureChildren(widthMeasureSpec, heightMeasureSpec);
-
         int maxWidth = MeasureSpec.getSize(widthMeasureSpec);
         int maxHeight = MeasureSpec.getSize(heightMeasureSpec);
 
+        measureChild(mHeaderView, widthMeasureSpec, heightMeasureSpec);
+        final int childHeightMeasureSpec = getChildMeasureSpec(heightMeasureSpec,
+                getPaddingTop() + getPaddingBottom(), maxHeight - mHeaderView.getMeasuredHeight());
+        measureChild(mDescView, widthMeasureSpec, childHeightMeasureSpec);
+
         setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, 0),
                 resolveSizeAndState(maxHeight, heightMeasureSpec, 0));
+
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
@@ -49,7 +53,9 @@ public class SlidingLayout extends ViewGroup {
         int dragViewHeight = mHeaderView.getMeasuredHeight();
         mDragRange = parentViewHeight - dragViewHeight;
 
+        //初始化时视图显示为最小化，方法不是很优雅，以后再换
         if(mTop == -1) mTop = getPaddingTop() + mDragRange;
+
         mHeaderView.layout(
                 0,
                 mTop,
@@ -60,7 +66,7 @@ public class SlidingLayout extends ViewGroup {
                 0,
                 mTop + mHeaderView.getMeasuredHeight(),
                 r,
-                mTop  + b);
+                mTop + b);
     }
 
     @Override
