@@ -22,12 +22,12 @@ public class SlidingLayout extends ViewGroup {
     private float mInitialMotionY;
 
     private int mDragRange;
-    private int mTop;
+    private int mTop = -1;
     private float mDragOffset;
 
     public SlidingLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mViewDragHelper = ViewDragHelper.create(this, 1.0f, new DragHelpCallBack());
+        mViewDragHelper = ViewDragHelper.create(this, 1f, new DragHelpCallBack());
     }
 
     @Override
@@ -49,6 +49,7 @@ public class SlidingLayout extends ViewGroup {
         int dragViewHeight = mHeaderView.getMeasuredHeight();
         mDragRange = parentViewHeight - dragViewHeight;
 
+        if(mTop == -1) mTop = getPaddingTop() + mDragRange;
         mHeaderView.layout(
                 0,
                 mTop,
@@ -73,13 +74,11 @@ public class SlidingLayout extends ViewGroup {
 
         final float x = ev.getX();
         final float y = ev.getY();
-        boolean interceptTap = false;
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:
                 mInitialMotionX = x;
                 mInitialMotionY = y;
-                interceptTap = mViewDragHelper.isViewUnder(mHeaderView, (int) x, (int) y);
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -93,7 +92,7 @@ public class SlidingLayout extends ViewGroup {
                 break;
         }
 
-        return mViewDragHelper.shouldInterceptTouchEvent(ev) || interceptTap;
+        return mViewDragHelper.shouldInterceptTouchEvent(ev);
     }
 
     @Override
@@ -117,15 +116,19 @@ public class SlidingLayout extends ViewGroup {
 
                 if(dx * dx + dy * dy < slop * slop && isHeaderViewUnder) {
                     if (mDragOffset == 0)
-                        smoothSlideTo(1.0f);
+                        smoothSlideTo(1f);
                     else
-                        smoothSlideTo(0.0f);
+                        smoothSlideTo(0f);
                 }
                 break;
         }
         return isHeaderViewUnder;
     }
 
+    /**
+     * Layout放大缩小
+     * @param slideOffset 1为最小化，0为最大化
+     */
     private void smoothSlideTo(float slideOffset) {
         final int topBound = getPaddingTop();
         int y = (int) (topBound + slideOffset * mDragRange);
