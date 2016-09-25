@@ -1,6 +1,6 @@
 # SlidingLayoutLibrary
 
-[![Release](https://img.shields.io/github/release/jitpack/android-example.svg?label=Jitpack)](https://jitpack.io/#jitpack/android-example)
+[![](https://jitpack.io/v/GavinLi369/SlidingLayoutLibrary.svg)](https://jitpack.io/#GavinLi369/SlidingLayoutLibrary)
 
 Add it to your build.gradle with:
 ```gradle
@@ -14,6 +14,6 @@ and:
 
 ```gradle
 dependencies {
-    compile 'com.github.GavinLi369:SlidingLayoutLibrary:1.1.1'
+    compile 'com.github.GavinLi369:SlidingLayoutLibrary:1.1.2'
 }
 ```
