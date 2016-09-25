@@ -109,6 +109,7 @@ public class SlidingLayout extends ViewGroup {
         final float y = event.getY();
 
         boolean isHeaderViewUnder = mViewDragHelper.isViewUnder(mHeaderView, (int)x, (int)y);
+        boolean isDescViewUnder = mViewDragHelper.isViewUnder(mDescView, (int)x, (int)y);
 
         switch(MotionEventCompat.getActionMasked(event)) {
             case MotionEvent.ACTION_DOWN:
@@ -121,14 +122,12 @@ public class SlidingLayout extends ViewGroup {
                 final float slop = mViewDragHelper.getTouchSlop();
 
                 if(dx * dx + dy * dy < slop * slop && isHeaderViewUnder) {
-                    if (mDragOffset == 0)
-                        smoothSlideTo(1f);
-                    else
+                    if (mDragOffset != 0)
                         smoothSlideTo(0f);
                 }
                 break;
         }
-        return isHeaderViewUnder;
+        return isHeaderViewUnder || isDescViewUnder;
     }
 
     /**

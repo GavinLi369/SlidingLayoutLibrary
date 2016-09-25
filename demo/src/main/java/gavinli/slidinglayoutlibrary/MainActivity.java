@@ -21,5 +21,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "------------->subView click");
             }
         });
+
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "------------>button click");
+            }
+        });
     }
 }

@@ -10,6 +10,13 @@
         android:textSize="15sp"
         android:text="Hello SlidingLayout"/>
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="This is a Button"/>
+
     <gavinli.slidinglayout.SlidingLayout
         android:layout_height="match_parent"
         android:layout_width="match_parent">
