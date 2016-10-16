@@ -1,7 +1,6 @@
 package gavinli.slidinglayout;
 
 import android.content.Context;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
@@ -18,16 +17,31 @@ public class SlidingLayout extends ViewGroup {
     private View mHeaderView;
     private View mDescView;
 
-    private float mInitialMotionX;
-    private float mInitialMotionY;
+    private OnViewRemoveListener onViewRemoveListener;
 
-    private int mDragRange;
-    private int mTop = -1;
-    private float mDragOffset;
+    private static final int WAIT_MODE = 0;
+    private static final int PULL_MODE = 1;
+    private static final int CLEAR_MODE = 2;
+    private int mDragMode = PULL_MODE;
+
+    private int mTop;
+    private int mVerticalDragRange;
+    private float mVerticalDragOffset;
+
+    private int mHorizontalDragRange;
+    private float mHorizontalDragOffset;
+
+    public SlidingLayout(Context context) {
+        this(context, null);
+    }
 
     public SlidingLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         mViewDragHelper = ViewDragHelper.create(this, 1f, new DragHelpCallBack());
+    }
+
+    public void setOnViewRemoveListener(OnViewRemoveListener listener) {
+        this.onViewRemoveListener = listener;
     }
 
     @Override
@@ -49,12 +63,8 @@ public class SlidingLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int parentViewHeight = getHeight();
-        int dragViewHeight = mHeaderView.getMeasuredHeight();
-        mDragRange = parentViewHeight - dragViewHeight;
-
-        //初始化时视图显示为最小化，方法不是很优雅，以后再换
-        if(mTop == -1) mTop = getPaddingTop() + mDragRange;
+        mVerticalDragRange = getHeight() - mHeaderView.getMeasuredHeight();
+        mHorizontalDragRange = getWidth();
 
         mHeaderView.layout(
                 0,
@@ -71,76 +81,40 @@ public class SlidingLayout extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        final int action = MotionEventCompat.getActionMasked(ev);
-
-        if(action != MotionEvent.ACTION_DOWN) {
-            mViewDragHelper.cancel();
-            return super.onInterceptTouchEvent(ev);
-        }
-
-        final float x = ev.getX();
-        final float y = ev.getY();
-
-        switch(action) {
-            case MotionEvent.ACTION_DOWN:
-                mInitialMotionX = x;
-                mInitialMotionY = y;
-                break;
-
-            case MotionEvent.ACTION_MOVE:
-                final float adx = Math.abs(x - mInitialMotionX);
-                final float ady = Math.abs(y - mInitialMotionY);
-                final int slop = mViewDragHelper.getTouchSlop();
-                if(ady > slop && adx > ady) {
-                    mViewDragHelper.cancel();
-                    return false;
-                }
-                break;
-        }
-
         return mViewDragHelper.shouldInterceptTouchEvent(ev);
     }
 
+    private float mLastPostionX;
+    private float mLastPostionY;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        boolean isHeaderViewUnder = mViewDragHelper.isViewUnder(
+                mHeaderView, (int)event.getX(), (int)event.getY());
+        boolean isDescViewUnder = mViewDragHelper.isViewUnder(
+                mDescView, (int)event.getX(), (int)event.getY());
+
+        if(isHeaderViewUnder) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    mLastPostionX = event.getX();
+                    mLastPostionY = event.getY();
+                    if (mTop == getHeight() - mHeaderView.getMeasuredHeight())
+                        mDragMode = WAIT_MODE;
+                case MotionEvent.ACTION_MOVE:
+                    if (mDragMode == WAIT_MODE) {
+                        if (Math.abs(mLastPostionX - event.getX()) > 5) {
+                            mDragMode = CLEAR_MODE;
+                        } else if (Math.abs(mLastPostionY - event.getY()) > 5) {
+                            mDragMode = PULL_MODE;
+                        }
+                    }
+                    break;
+            }
+        }
         mViewDragHelper.processTouchEvent(event);
 
-        final float x = event.getX();
-        final float y = event.getY();
-
-        boolean isHeaderViewUnder = mViewDragHelper.isViewUnder(mHeaderView, (int)x, (int)y);
-        boolean isDescViewUnder = mViewDragHelper.isViewUnder(mDescView, (int)x, (int)y);
-
-        switch(MotionEventCompat.getActionMasked(event)) {
-            case MotionEvent.ACTION_DOWN:
-                mInitialMotionX = x;
-                mInitialMotionY = y;
-                break;
-            case MotionEvent.ACTION_UP:
-                final float dx = x - mInitialMotionX;
-                final float dy = y - mInitialMotionY;
-                final float slop = mViewDragHelper.getTouchSlop();
-
-                if(dx * dx + dy * dy < slop * slop && isHeaderViewUnder) {
-                    if (mDragOffset != 0)
-                        smoothSlideTo(0f);
-                }
-                break;
-        }
-        return isHeaderViewUnder || isDescViewUnder;
-    }
-
-    /**
-     * Layout放大缩小
-     * @param slideOffset 1为最小化，0为最大化
-     */
-    private void smoothSlideTo(float slideOffset) {
-        final int topBound = getPaddingTop();
-        int y = (int) (topBound + slideOffset * mDragRange);
-
-        if(mViewDragHelper.smoothSlideViewTo(mHeaderView, mHeaderView.getLeft(), y)) {
-            ViewCompat.postInvalidateOnAnimation(this);
-        }
+        return mDragMode == CLEAR_MODE || isHeaderViewUnder || isDescViewUnder;
     }
 
     @Override
@@ -169,42 +143,69 @@ public class SlidingLayout extends ViewGroup {
 
         @Override
         public int clampViewPositionVertical(View child, int top, int dy) {
-            final int topBound = getPaddingTop();
-            final int bottomBound = getHeight() - mHeaderView.getHeight();
-            return Math.min(Math.max(top, topBound), bottomBound);
+            if(mDragMode == CLEAR_MODE) {
+                return getHeight() - child.getMeasuredHeight();
+            } else {
+                final int topBound = getPaddingTop();
+                final int bottomBound = getHeight() - mHeaderView.getHeight();
+                return Math.min(Math.max(top, topBound), bottomBound);
+            }
+        }
+
+        @Override
+        public int clampViewPositionHorizontal(View child, int left, int dx) {
+            if(mDragMode == PULL_MODE) {
+                return 0;
+            } else {
+                return left;
+            }
         }
 
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
-            mTop = top;
-            mDragOffset = (float) top / mDragRange;
-
-            mHeaderView.setPivotX(mHeaderView.getWidth());
-            mHeaderView.setPivotY(mHeaderView.getHeight());
-//            mHeaderView.setScaleX(1 - mDragOffset / 2);
-//            mHeaderView.setScaleY(1 - mDragOffset / 2);
-            //调整HeaderView视图大小
-            mHeaderView.setScaleX(1);
-            mHeaderView.setScaleY(1);
-
-            mDescView.setAlpha(1 - mDragOffset);
-
-            requestLayout();
+            if(mDragMode == PULL_MODE) {
+                mTop = top;
+                mVerticalDragOffset = (float) top / mVerticalDragRange;
+                mDescView.setAlpha(1 - mVerticalDragOffset);
+                requestLayout();
+            } else if(mDragMode == CLEAR_MODE) {
+                mHorizontalDragOffset = Math.abs((float) left / mHorizontalDragRange);
+            }
         }
 
         @Override
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
-            int top = getPaddingTop();
-            if (yvel > 0 || (yvel == 0 && mDragOffset > 0.4f)) {
-                top += mDragRange;
+            if(mDragMode == PULL_MODE) {
+                int top = getPaddingTop();
+                if (yvel > 2000 || (yvel >= 0 && mVerticalDragOffset > 0.4f)) {
+                    top += mVerticalDragRange;
+                }
+                mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top);
+                invalidate();
+            } else if(mDragMode == CLEAR_MODE) {
+                int left = getPaddingLeft();
+                if (Math.abs(xvel) > 2000 || mHorizontalDragOffset > 0.4f) {
+                    left += mHorizontalDragRange;
+                    mViewDragHelper.settleCapturedViewAt(left, releasedChild.getTop());
+                    onViewRemoveListener.removeView();
+                } else {
+                    mViewDragHelper.settleCapturedViewAt(0, releasedChild.getTop());
+                    invalidate();
+                }
+            } else {
+                mViewDragHelper.settleCapturedViewAt(0, getHeight() - releasedChild.getMeasuredHeight());
+                invalidate();
             }
-            mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top);
-            invalidate();
         }
 
         @Override
         public int getViewVerticalDragRange(View child) {
-            return mDragRange;
+            return mVerticalDragRange;
+        }
+
+        @Override
+        public int getViewHorizontalDragRange(View child) {
+            return mHorizontalDragRange;
         }
     }
 }

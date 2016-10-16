@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gavinli.slidinglayout.SlidingLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <LinearLayout
+        android:id="@+id/viewHeader"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#f00">
+        <Button
+            android:id="@+id/subview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Subview"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/viewDesc"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0f0">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="This is a subview"
+            android:textSize="40sp"/>
+    </RelativeLayout>
+
+</gavinli.slidinglayout.SlidingLayout>
