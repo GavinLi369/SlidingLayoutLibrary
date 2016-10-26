@@ -17,7 +17,7 @@ public class SlidingLayout extends ViewGroup {
     private View mHeaderView;
     private View mDescView;
 
-    private OnViewRemoveListener onViewRemoveListener;
+    private OnViewStatusChangedListener mOnViewStatusChangedListener;
 
     private static final int WAIT_MODE = 0;
     private static final int PULL_MODE = 1;
@@ -40,8 +40,8 @@ public class SlidingLayout extends ViewGroup {
         mViewDragHelper = ViewDragHelper.create(this, 1f, new DragHelpCallBack());
     }
 
-    public void setOnViewRemoveListener(OnViewRemoveListener listener) {
-        this.onViewRemoveListener = listener;
+    public void setOnViewStatusChangedListener(OnViewStatusChangedListener listener) {
+        this.mOnViewStatusChangedListener = listener;
     }
 
     @Override
@@ -56,7 +56,6 @@ public class SlidingLayout extends ViewGroup {
 
         setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, 0),
                 resolveSizeAndState(maxHeight, heightMeasureSpec, 0));
-
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
@@ -183,14 +182,20 @@ public class SlidingLayout extends ViewGroup {
                 }
                 mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top);
                 invalidate();
+                if(top == 0) {
+                    mOnViewStatusChangedListener.onViewMaximized();
+                } else {
+                    mOnViewStatusChangedListener.onViewMinimized();
+                }
             } else if(mDragMode == CLEAR_MODE) {
                 int left = getPaddingLeft();
                 if (Math.abs(xvel) > 2000 || mHorizontalDragOffset > 0.4f) {
                     left += mHorizontalDragRange;
                     mViewDragHelper.settleCapturedViewAt(left, releasedChild.getTop());
-                    onViewRemoveListener.removeView();
+                    mOnViewStatusChangedListener.onViewRemoved();
                 } else {
                     mViewDragHelper.settleCapturedViewAt(0, releasedChild.getTop());
+                    mDragMode = WAIT_MODE;
                     invalidate();
                 }
             } else {
