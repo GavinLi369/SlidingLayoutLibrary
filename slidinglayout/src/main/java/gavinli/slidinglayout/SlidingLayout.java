@@ -31,6 +31,8 @@ public class SlidingLayout extends ViewGroup {
     private int mHorizontalDragRange;
     private float mHorizontalDragOffset;
 
+    private boolean mMaximized = true;
+
     public SlidingLayout(Context context) {
         this(context, null);
     }
@@ -86,6 +88,7 @@ public class SlidingLayout extends ViewGroup {
     private float mLastPostionX;
     private float mLastPostionY;
 
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean isHeaderViewUnder = mViewDragHelper.isViewUnder(
@@ -102,7 +105,7 @@ public class SlidingLayout extends ViewGroup {
                         mDragMode = WAIT_MODE;
                 case MotionEvent.ACTION_MOVE:
                     if (mDragMode == WAIT_MODE) {
-                        if (Math.abs(mLastPostionX - event.getX()) > 5) {
+                        if (Math.abs(mLastPostionX - event.getX()) > 20) {
                             mDragMode = CLEAR_MODE;
                         } else if (Math.abs(mLastPostionY - event.getY()) > 5) {
                             mDragMode = PULL_MODE;
@@ -180,13 +183,18 @@ public class SlidingLayout extends ViewGroup {
                 if (yvel > 2000 || (yvel >= 0 && mVerticalDragOffset > 0.4f)) {
                     top += mVerticalDragRange;
                 }
+
+                //最大最小化监听回调
+                if(mMaximized && top == getPaddingTop() + mVerticalDragRange) {
+                    mOnViewStatusChangedListener.onViewMinimized();
+                    mMaximized = false;
+                } else if(!mMaximized && top == getPaddingTop()) {
+                    mOnViewStatusChangedListener.onViewMaximized();
+                    mMaximized = true;
+                }
+
                 mViewDragHelper.settleCapturedViewAt(releasedChild.getLeft(), top);
                 invalidate();
-                if(top == 0) {
-                    mOnViewStatusChangedListener.onViewMaximized();
-                } else {
-                    mOnViewStatusChangedListener.onViewMinimized();
-                }
             } else if(mDragMode == CLEAR_MODE) {
                 int left = getPaddingLeft();
                 if (Math.abs(xvel) > 2000 || mHorizontalDragOffset > 0.4f) {
@@ -195,6 +203,7 @@ public class SlidingLayout extends ViewGroup {
                     mOnViewStatusChangedListener.onViewRemoved();
                 } else {
                     mViewDragHelper.settleCapturedViewAt(0, releasedChild.getTop());
+                    mHeaderView.setAlpha(1);
                     mDragMode = WAIT_MODE;
                     invalidate();
                 }
