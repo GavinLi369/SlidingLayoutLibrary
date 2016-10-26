@@ -170,6 +170,7 @@ public class SlidingLayout extends ViewGroup {
                 requestLayout();
             } else if(mDragMode == CLEAR_MODE) {
                 mHorizontalDragOffset = Math.abs((float) left / mHorizontalDragRange);
+                mHeaderView.setAlpha(1 - mHorizontalDragOffset);
             }
         }
 

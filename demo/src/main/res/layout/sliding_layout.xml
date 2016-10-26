@@ -19,7 +19,7 @@
     <RelativeLayout
         android:id="@+id/viewDesc"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="220dp"
         android:background="#0f0">
 
         <TextView
