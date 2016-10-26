@@ -14,6 +14,6 @@ and:
 
 ```gradle
 dependencies {
-    compile 'com.github.GavinLi369:SlidingLayoutLibrary:1.1.2'
+    compile 'com.github.GavinLi369:SlidingLayoutLibrary:1.x.x'
 }
 ```
