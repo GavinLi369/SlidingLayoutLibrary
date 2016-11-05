@@ -2,6 +2,13 @@
 
 [![](https://jitpack.io/v/GavinLi369/SlidingLayoutLibrary.svg)](https://jitpack.io/#GavinLi369/SlidingLayoutLibrary)
 
+## Features
+
+![feature1](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/feature1.gif)
+![feature2](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/feature2.gif)
+
+## How to use
+
 Add it to your build.gradle with:
 ```gradle
 allprojects {
