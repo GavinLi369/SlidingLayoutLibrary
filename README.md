@@ -4,8 +4,8 @@
 
 ## Features
 
-![feature1](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/feature1.gif)
-![feature2](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/feature2.gif)
+![feature1](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/master/feature1.gif)
+![feature2](https://github.com/GavinLi369/SlidingLayoutLibrary/raw/master/feature2.gif)
 
 ## How to use
 
