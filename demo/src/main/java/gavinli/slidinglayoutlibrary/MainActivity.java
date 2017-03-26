@@ -9,10 +9,9 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import gavinli.slidinglayout.OnViewStatusChangedListener;
 import gavinli.slidinglayout.SlidingLayout;
 
-public class MainActivity extends AppCompatActivity implements OnViewStatusChangedListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FrameLayout mMainLayout;
     private SlidingLayout mSlidingLayout;
@@ -33,32 +32,29 @@ public class MainActivity extends AppCompatActivity implements OnViewStatusChang
                         MainActivity.this,
                         R.layout.sliding_layout,
                         null);
-                mSlidingLayout.setOnViewStatusChangedListener(MainActivity.this);
+                mSlidingLayout.setOnViewStatusChangedListener(new MyViewStatusChangedAdapter());
                 mMainLayout.addView(mSlidingLayout);
             }
         });
     }
 
-    @Override
-    public void onViewMaximized() {
-        ((ViewGroup) mSubView.getParent()).removeView(mSubView);
-    }
+    private class MyViewStatusChangedAdapter extends SlidingLayout.OnViewStatusChangedAdapter {
+        @Override
+        public void onViewMaximized() {
+            ((ViewGroup) mSubView.getParent()).removeView(mSubView);
+        }
 
-    @Override
-    public void onViewMinimized() {
-        mSubView = new Button(this);
-        mSubView.setText("SubView");
-        mSubView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "------------->subView click");
-            }
-        });
-        ((LinearLayout) mSlidingLayout.findViewById(R.id.viewHeader)).addView(mSubView);
-    }
-
-    @Override
-    public void onViewRemoved() {
-        mMainLayout.removeView(mSlidingLayout);
+        @Override
+        public void onViewMinimized() {
+            mSubView = new Button(MainActivity.this);
+            mSubView.setText("SubView");
+            mSubView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "------------->subView click");
+                }
+            });
+            ((LinearLayout) mSlidingLayout.findViewById(R.id.viewHeader)).addView(mSubView);
+        }
     }
 }

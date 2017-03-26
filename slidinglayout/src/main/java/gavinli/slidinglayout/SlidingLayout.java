@@ -43,7 +43,7 @@ public class SlidingLayout extends ViewGroup {
     }
 
     public void setOnViewStatusChangedListener(OnViewStatusChangedListener listener) {
-        this.mOnViewStatusChangedListener = listener;
+        mOnViewStatusChangedListener = listener;
     }
 
     @Override
@@ -186,10 +186,12 @@ public class SlidingLayout extends ViewGroup {
 
                 //最大最小化监听回调
                 if(mMaximized && top == getPaddingTop() + mVerticalDragRange) {
-                    mOnViewStatusChangedListener.onViewMinimized();
+                    if(mOnViewStatusChangedListener != null)
+                        mOnViewStatusChangedListener.onViewMinimized();
                     mMaximized = false;
                 } else if(!mMaximized && top == getPaddingTop()) {
-                    mOnViewStatusChangedListener.onViewMaximized();
+                    if(mOnViewStatusChangedListener != null)
+                        mOnViewStatusChangedListener.onViewMaximized();
                     mMaximized = true;
                 }
 
@@ -200,7 +202,10 @@ public class SlidingLayout extends ViewGroup {
                 if (Math.abs(xvel) > 2000 || mHorizontalDragOffset > 0.4f) {
                     left += mHorizontalDragRange;
                     mViewDragHelper.settleCapturedViewAt(left, releasedChild.getTop());
-                    mOnViewStatusChangedListener.onViewRemoved();
+                    //移除View
+                    ((ViewGroup) getParent()).removeView(SlidingLayout.this);
+                    if(mOnViewStatusChangedListener != null)
+                        mOnViewStatusChangedListener.onViewRemoved();
                 } else {
                     mViewDragHelper.settleCapturedViewAt(0, releasedChild.getTop());
                     mHeaderView.setAlpha(1);
@@ -221,6 +226,28 @@ public class SlidingLayout extends ViewGroup {
         @Override
         public int getViewHorizontalDragRange(View child) {
             return mHorizontalDragRange;
+        }
+    }
+
+    public interface OnViewStatusChangedListener {
+        void onViewMaximized();
+
+        void onViewMinimized();
+
+        void onViewRemoved();
+    }
+
+    public static class OnViewStatusChangedAdapter implements OnViewStatusChangedListener {
+        @Override
+        public void onViewMaximized() {
+        }
+
+        @Override
+        public void onViewMinimized() {
+        }
+
+        @Override
+        public void onViewRemoved() {
         }
     }
 }
